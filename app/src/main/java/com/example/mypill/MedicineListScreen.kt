@@ -33,9 +33,11 @@ fun MedicineListScreen(
     var medicineToDelete by remember { mutableStateOf<Medicine?>(null) }
     val context = LocalContext.current
 
-    Column(modifier = Modifier
-        .padding(16.dp)
-        .fillMaxSize()
+
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxSize()
     ) {
         Row(
             modifier = Modifier
@@ -90,13 +92,19 @@ fun MedicineListScreen(
                     val sortedTimes = medicine.consumptionTimes.sortedBy { it.time }
 
                     sortedTimes.forEach { time ->
-                        val formattedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedDate)
-                        val formattedTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(time)
+                        val formattedDate =
+                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedDate)
+                        val formattedTime =
+                            SimpleDateFormat("HH:mm", Locale.getDefault()).format(time)
 
                         val isTakenState = remember { mutableStateOf(false) }
 
                         LaunchedEffect(medicine, selectedDate, time) {
-                            viewModel.isMedicineTaken(medicine, formattedDate, formattedTime) { isTaken ->
+                            viewModel.isMedicineTaken(
+                                medicine,
+                                formattedDate,
+                                formattedTime
+                            ) { isTaken ->
                                 isTakenState.value = isTaken
                             }
                         }
@@ -106,11 +114,20 @@ fun MedicineListScreen(
                             time = time,
                             selectedDate = selectedDate,
                             onEditClick = onEditClick,
-                            onDeleteClick = onDeleteClick,
+                            onDeleteClick = {
+                                medicineToDelete = medicine
+                                showDeleteDialog = true
+                            },
                             onStatusChange = { updatedMedicine, date, time ->
-                                val formattedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date)
-                                val formattedTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(time)
-                                viewModel.toggleMedicineStatus(updatedMedicine, formattedDate, formattedTime)
+                                val formattedDate =
+                                    SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date)
+                                val formattedTime =
+                                    SimpleDateFormat("HH:mm", Locale.getDefault()).format(time)
+                                viewModel.toggleMedicineStatus(
+                                    updatedMedicine,
+                                    formattedDate,
+                                    formattedTime
+                                )
                                 isTakenState.value = !isTakenState.value
                             },
                             isTaken = isTakenState.value
@@ -139,7 +156,9 @@ fun MedicineListScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onDeleteClick(medicineToDelete!!)
+                        medicineToDelete?.let {
+                            onDeleteClick(it)
+                        }
                         showDeleteDialog = false
                     }
                 ) {
@@ -158,7 +177,8 @@ fun MedicineListScreen(
 }
 
 
-@Composable
+
+    @Composable
 fun MedicineCard(
     medicine: Medicine,
     time: Date,
@@ -212,6 +232,7 @@ fun MedicineCard(
                     ) {
                         Text("Удалить")
                     }
+
                 }
             }
         }
